@@ -1,4 +1,4 @@
-"""The tools the harness can run, and the JSON that describes them to the model."""
+"""Tools used by BingeWise to search TV shows and create watch schedules."""
 
 import json
 import os
@@ -10,9 +10,7 @@ import requests
 TMDB_URL = "https://api.themoviedb.org/3"
 
 
-# ============================================================
 # TMDB helper
-# ============================================================
 
 def _tmdb_get(path: str, params: dict | None = None) -> dict:
     """Send a request to TMDB and return the JSON response safely."""
@@ -63,9 +61,7 @@ def _tmdb_get(path: str, params: dict | None = None) -> dict:
     return response.json()
 
 
-# ============================================================
 # Load show episode information
-# ============================================================
 
 def _load_show(show_id: int) -> dict:
     """Load a TV show's aired episodes and runtimes from TMDB."""
@@ -151,9 +147,7 @@ def _load_show(show_id: int) -> dict:
     }
 
 
-# ============================================================
 # Tool 1: Search for a TV show
-# ============================================================
 
 def search_show(query: str) -> str:
     """Search TMDB for a TV series by title and return possible matches."""
@@ -204,9 +198,7 @@ def search_show(query: str) -> str:
     })
 
 
-# ============================================================
 # Tool 2: Get total watch time
-# ============================================================
 
 def get_watch_time(show_id: int) -> str:
     """Calculate the total watch time of all aired episodes of a TV show."""
@@ -277,9 +269,7 @@ def get_watch_time(show_id: int) -> str:
     })
 
 
-# ============================================================
 # Shared schedule simulation
-# ============================================================
 
 def _simulate_schedule(
     episodes,
@@ -360,9 +350,7 @@ def _simulate_schedule(
     return schedule, episode_index
 
 
-# ============================================================
 # Tool 3: Original BingeWise scheduling algorithm
-# ============================================================
 
 def plan_binge_schedule(
     show_id: int,
@@ -385,9 +373,7 @@ def plan_binge_schedule(
     viewing time.
     """
 
-    # --------------------------------------------------------
     # Load show
-    # --------------------------------------------------------
 
     try:
         show = _load_show(int(show_id))
@@ -407,9 +393,7 @@ def plan_binge_schedule(
 
     start = date.today()
 
-    # --------------------------------------------------------
     # Validate deadline
-    # --------------------------------------------------------
 
     try:
         end = datetime.strptime(
@@ -434,9 +418,7 @@ def plan_binge_schedule(
             )
         })
 
-    # --------------------------------------------------------
     # Validate viewing time
-    # --------------------------------------------------------
 
     try:
         weekday_minutes = int(weekday_minutes)
@@ -470,9 +452,7 @@ def plan_binge_schedule(
 
     episodes = show["episodes"]
 
-    # --------------------------------------------------------
     # Optional season filter
-    # --------------------------------------------------------
 
     selected_season = None
 
@@ -521,9 +501,7 @@ def plan_binge_schedule(
             )
         })
 
-    # --------------------------------------------------------
     # Check longest episode
-    # --------------------------------------------------------
 
     longest_episode = max(
         episode["minutes"]
@@ -548,9 +526,7 @@ def plan_binge_schedule(
             )
         })
 
-    # --------------------------------------------------------
     # Generate full schedule
-    # --------------------------------------------------------
 
     schedule, episode_index = _simulate_schedule(
         episodes,
@@ -575,9 +551,7 @@ def plan_binge_schedule(
         "%Y-%m-%d",
     ).date()
 
-    # --------------------------------------------------------
     # Deadline result
-    # --------------------------------------------------------
 
     makes_deadline = finish_date <= end
 
@@ -595,9 +569,7 @@ def plan_binge_schedule(
             finish_date - end
         ).days
 
-    # --------------------------------------------------------
     # Count progress at deadline from existing schedule
-    # --------------------------------------------------------
 
     episodes_completed_by_deadline = sum(
         len(day["episodes"])
@@ -617,9 +589,7 @@ def plan_binge_schedule(
         ]
     )
 
-    # --------------------------------------------------------
     # Find recommended viewing time if user misses deadline
-    # --------------------------------------------------------
 
     recommended_weekday_minutes = None
     recommended_weekend_minutes = None
@@ -664,9 +634,7 @@ def plan_binge_schedule(
 
                 break
 
-    # --------------------------------------------------------
     # Runtime summary
-    # --------------------------------------------------------
 
     total_minutes = sum(
         episode["minutes"]
@@ -678,9 +646,7 @@ def plan_binge_schedule(
         1,
     )
 
-    # --------------------------------------------------------
     # Final result
-    # --------------------------------------------------------
 
     return json.dumps({
         "show_id": show["show_id"],
@@ -723,10 +689,7 @@ def plan_binge_schedule(
         "schedule": schedule,
     })
 
-
-# ============================================================
 # Tool definitions Gemini sees
-# ============================================================
 
 TOOLS = [
     {
@@ -858,10 +821,7 @@ TOOLS = [
     },
 ]
 
-
-# ============================================================
 # Tool map
-# ============================================================
 
 TOOL_MAP = {
     "search_show": search_show,
@@ -869,10 +829,7 @@ TOOL_MAP = {
     "plan_binge_schedule": plan_binge_schedule,
 }
 
-
-# ============================================================
 # Tool runner
-# ============================================================
 
 def run_tool(name: str, args: dict) -> str:
     """Run one tool call without letting a bad tool call crash the chat."""
