@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>BingeWise — TV Watch Planner</title>
+        <style>
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+                min-height: 100vh;
+                display: flex;
+                justify-content: center;
+                align-items: flex-start;
+                padding: 1.5rem 1rem;
+
+                background:
+                    radial-gradient(circle at top left, #f3e8ff 0%, transparent 35%),
+                    radial-gradient(circle at bottom right, #ffe4ef 0%, transparent 35%),
+                    linear-gradient(135deg, #fffafc 0%, #faf7ff 50%, #fff8fb 100%);
+
+                color: #30283d;
+            }
+
+            #container {
+                width: 100%;
+                max-width: 1000px;
+                height: calc(100vh - 3rem);
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+
+                background: rgba(255, 255, 255, 0.92);
+                border: 1px solid #eadff2;
+                border-radius: 28px;
+
+                box-shadow:
+                    0 20px 60px rgba(126, 87, 150, 0.12),
+                    0 4px 15px rgba(126, 87, 150, 0.06);
+            }
+
+            #header {
+                padding: 1.8rem 2rem 1.6rem;
+                border-bottom: 1px solid #eee6f3;
+                background: linear-gradient(
+                    135deg,
+                    rgba(250, 245, 255, 0.9),
+                    rgba(255, 244, 249, 0.9)
+                );
+            }
+
+            .brand {
+                display: inline-block;
+                font-size: 0.85rem;
+                font-weight: 800;
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+                color: #8b5aa5;
+                background: #f4e8fb;
+                padding: 0.45rem 0.8rem;
+                border-radius: 999px;
+                margin-bottom: 0.9rem;
+            }
+
+            #header h1 {
+                font-size: 1.8rem;
+                line-height: 1.2;
+                color: #30283d;
+                margin-bottom: 0.65rem;
+            }
+
+            #header .subtitle {
+                color: #756b7d;
+                line-height: 1.55;
+                max-width: 720px;
+            }
+
+            .steps {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.6rem;
+                margin-top: 1.1rem;
+            }
+
+            .steps span {
+                background: white;
+                border: 1px solid #eadff2;
+                border-radius: 999px;
+                padding: 0.5rem 0.8rem;
+                font-size: 0.8rem;
+                color: #5d5067;
+                box-shadow: 0 2px 8px rgba(126, 87, 150, 0.06);
+            }
+
+            #messages {
+                overflow-y: auto;
+                padding: 2rem;
+                display: flex;
+                flex-direction: column;
+                gap: 1.5rem;
+                min-height: 350px;
+                max-height: 70vh;
+            }
+
+            .msg {
+                line-height: 1.5;
+                max-width: 80%;
+            }
+
+            .msg.user {
+                align-self: flex-end;
+                text-align: right;
+            }
+
+            .msg .role {
+                font-size: 0.75rem;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: #999;
+                margin-bottom: 0.25rem;
+            }
+
+            .msg.loading .content {
+                color: #999;
+            }
+
+            #input-area {
+                display: flex;
+                gap: 1rem;
+                padding: 1.5rem;
+                border-top: 1px solid #e0e0e0;
+            }
+
+            #user-input {
+                flex: 1;
+                padding: 0.75rem 0;
+                border: none;
+                border-bottom: 1px solid #e0e0e0;
+                font-size: 1rem;
+                outline: none;
+            }
+
+            #user-input:focus {
+                border-bottom-color: #000;
+            }
+
+            button {
+                padding: 0.75rem 1.5rem;
+                background: #000;
+                color: #fff;
+                border: none;
+                font-size: 0.75rem;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                cursor: pointer;
+            }
+
+            .tool {
+                font-family: ui-monospace, monospace;
+                font-size: 0.75rem;
+                color: #555;
+                background: #faf7fc;
+                border: 1px solid #eadff2;
+                border-left: 3px solid #a875bd;
+                border-radius: 10px;
+                padding: 0.7rem 0.85rem;
+                margin: 0.25rem 0 0.75rem;
+                word-break: break-word;
+            }
+
+            .tool .label {
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: #8b5aa5;
+                font-weight: 700;
+            }
+
+            .tool .tool-summary {
+                margin-top: 0.35rem;
+                color: #6f6476;
+            }
+
+            .tool details {
+                margin-top: 0.55rem;
+            }
+
+            .tool summary {
+                cursor: pointer;
+                color: #8b5aa5;
+                font-weight: 600;
+                user-select: none;
+            }
+
+            .tool-result {
+                margin-top: 0.6rem;
+                padding: 0.65rem;
+                background: white;
+                border: 1px solid #eee6f3;
+                border-radius: 8px;
+                white-space: pre-wrap;
+                max-height: 260px;
+                overflow-y: auto;
+            }
+
+            button:disabled {
+                opacity: 0.3;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="container">
+            <div id="header">
+                <div class="brand">🍿 BingeWise</div>
+
+                <h1>Can you finish it before life gets in the way?</h1>
+
+                <p class="subtitle">
+                    Your personal binge planner. Tell me what you're watching
+                    and I'll turn your free time into a realistic watch plan.
+                </p>
+
+                <div class="steps">
+                    <span>🎬 Pick a show</span>
+                    <span>📅 Set a deadline</span>
+                    <span>⏰ Add your free time</span>
+                    <span>✨ Get your plan</span>
+                </div>
+            </div>
+
+            <div id="messages"></div>
+
+            <div id="input-area">
+                <input
+                    type="text"
+                    id="user-input"
+                    placeholder="e.g. Can I finish Stranger Things before October 31?"
+                    autocomplete="off"
+                />
+                <button id="send-btn">Send</button>
+            </div>
+        </div>
+
+        <script>
+            const messages = document.getElementById("messages");
+            const userInput = document.getElementById("user-input");
+            const sendBtn = document.getElementById("send-btn");
+            let sessionId = null;
+
+            function addMessage(role, text, isLoading = false) {
+                const div = document.createElement("div");
+                div.className =
+                    "msg " +
+                    (role === "you" ? "user" : "assistant") +
+                    (isLoading ? " loading" : "");
+
+                div.innerHTML =
+                    '<div class="role">' +
+                    role +
+                    '</div><div class="content">' +
+                    text +
+                    "</div>";
+
+                messages.appendChild(div);
+                messages.scrollTop = messages.scrollHeight;
+                return div;
+            }
+
+            async function send() {
+                const text = userInput.value.trim();
+                if (!text) return;
+
+                userInput.value = "";
+                sendBtn.disabled = true;
+
+                addMessage("you", text);
+                const loading = addMessage("assistant", "Thinking...", true);
+
+                try {
+                    const res = await fetch("/chat", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            message: text,
+                            session_id: sessionId,
+                        }),
+                    });
+
+                    const data = await res.json();
+                    sessionId = data.session_id;
+
+                    // Show each tool the harness ran, above the assistant's answer
+                    for (const call of data.tool_calls || []) {
+                        const div = document.createElement("div");
+                        div.className = "tool";
+
+                        const label = document.createElement("div");
+                        label.className = "label";
+                        label.textContent = "🔧 " + call.name;
+                        div.appendChild(label);
+
+                        const summary = document.createElement("div");
+                        summary.className = "tool-summary";
+                        summary.textContent =
+                            "Arguments: " + JSON.stringify(call.args);
+                        div.appendChild(summary);
+
+                        const details = document.createElement("details");
+
+                        const detailsSummary =
+                            document.createElement("summary");
+                        detailsSummary.textContent = "View tool result";
+                        details.appendChild(detailsSummary);
+
+                        const result = document.createElement("div");
+                        result.className = "tool-result";
+
+                        try {
+                            result.textContent = JSON.stringify(
+                                JSON.parse(call.result),
+                                null,
+                                2
+                            );
+                        } catch {
+                            result.textContent = call.result;
+                        }
+
+                        details.appendChild(result);
+                        div.appendChild(details);
+
+                        messages.insertBefore(div, loading);
+                    }
+
+                    loading.querySelector(".content").textContent =
+                        data.response;
+                    loading.classList.remove("loading");
+                } catch (e) {
+                    loading.querySelector(".content").textContent =
+                        "Error: " + e.message;
+                    loading.classList.remove("loading");
+                }
+
+                sendBtn.disabled = false;
+                userInput.focus();
+            }
+
+            sendBtn.addEventListener("click", send);
+
+            userInput.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") send();
+            });
+
+            userInput.focus();
+        </script>
+    </body>
+</html>
