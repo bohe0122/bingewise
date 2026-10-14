@@ -1,6 +1,7 @@
 # gemini-web-tool-calling
 # BingeWise
-# https://bingewise-git-255494031083.europe-west1.run.app
+
+https://bingewise-git-255494031083.europe-west1.run.app
 
 BingeWise is a web-based TV watch planner that helps users figure out whether they can finish a TV show before a deadline/day based on their available viewing time.
 
